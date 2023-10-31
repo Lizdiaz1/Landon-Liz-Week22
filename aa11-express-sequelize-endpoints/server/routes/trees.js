@@ -5,13 +5,14 @@ const router = express.Router();
 /**
  * BASIC PHASE 1, Step A - Import model
  */
-// Your code here 
+// Your code here
+const { Tree } = require ('../db/models')
 
 /**
  * INTERMEDIATE BONUS PHASE 1 (OPTIONAL), Step A:
  *   Import Op to perform comparison operations in WHERE clauses
  **/
-// Your code here 
+// Your code here
 
 /**
  * BASIC PHASE 1, Step B - List of all trees in the database
@@ -25,8 +26,13 @@ const router = express.Router();
  */
 router.get('/', async (req, res, next) => {
     let trees = [];
+    trees = await Tree.findAll({
+        attributes: ['heightFt', 'tree', 'id'],
+        order: [['heightFt', 'DESC']]
+    });
 
-    // Your code here 
+    // Your code here
+
 
     res.json(trees);
 });
@@ -44,7 +50,8 @@ router.get('/:id', async (req, res, next) => {
     let tree;
 
     try {
-        // Your code here 
+        // Your code here
+        tree = await Tree.findByPk(req.params.id);
 
         if (tree) {
             res.json(tree);
@@ -82,7 +89,15 @@ router.get('/:id', async (req, res, next) => {
  */
 router.post('/', async (req, res, next) => {
     try {
+        const {name, location, height, size} = req.body
+        const newTree = await Tree.create ({
+            tree: name,
+            location: location,
+            heightFt: height,
+            groundCircumferenceFt: size
+        });
         res.json({
+            data: newTree,
             status: "success",
             message: "Successfully created new tree",
         });
@@ -117,6 +132,15 @@ router.post('/', async (req, res, next) => {
  */
 router.delete('/:id', async (req, res, next) => {
     try {
+        const deletedTree = await Tree.findByPk(req.params.id);
+       if (deletedTree)
+       {await deletedTree.destroy()}
+       else {const error = new Error()
+    error.status = 'not-found',
+    error.message = `Could not remove tree ${req.params.id}`,
+    error.details = 'Tree not found'
+    next(error)}
+
         res.json({
             status: "success",
             message: `Successfully removed tree ${req.params.id}`,
@@ -166,7 +190,7 @@ router.delete('/:id', async (req, res, next) => {
  */
 router.put('/:id', async (req, res, next) => {
     try {
-        // Your code here 
+       const {id, name, location, height, size} = req.body // Your code here
     } catch(err) {
         next({
             status: "error",
